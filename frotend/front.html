@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Biometric Door Lock</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body {
+    background: #0f172a;
+    color: white;
+}
+.navbar {
+    background: #020617;
+}
+.hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.card {
+    background: #1e293b;
+    border-radius: 15px;
+}
+.btn-custom {
+    background: #22c55e;
+    border: none;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">Smart Lock</a>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div>
+    <h1>Smart Biometric Door Lock System</h1>
+    <p>Face Recognition | Fingerprint | IoT Control</p>
+    <button class="btn btn-custom" onclick="unlockDoor()">Unlock Door</button>
+  </div>
+</section>
+
+<!-- Features -->
+<div class="container my-5">
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card p-4 text-center">
+        <h3>Face Recognition</h3>
+        <p>AI-based camera authentication</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4 text-center">
+        <h3>Fingerprint Sensor</h3>
+        <p>Secure biometric access</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4 text-center">
+        <h3>IoT Control</h3>
+        <p>Control door from anywhere</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Live Camera -->
+<div class="container text-center my-5">
+  <h2>Live Camera</h2>
+  <video id="camera" width="300" autoplay></video>
+</div>
+
+<!-- Status -->
+<div class="container text-center my-5">
+  <h2>Status</h2>
+  <p id="status">Door Locked</p>
+</div>
+
+<script>
+// Camera Access
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    document.getElementById('camera').srcObject = stream;
+});
+
+// Unlock function (IoT Simulation)
+function unlockDoor() {
+    document.getElementById('status').innerText = "Door Unlocked";
+    alert("Door Unlocked via IoT!");
+}
+</script>
+
+</body>
+</html>
