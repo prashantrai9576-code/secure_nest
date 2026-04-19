@@ -14,19 +14,47 @@ function toggleTheme(){
 }
 
 // ── Auth Guard ──
-auth.onAuthStateChanged(user=>{
-  const isDemo = (typeof firebaseConfig !== 'undefined' && firebaseConfig.apiKey === 'YOUR_API_KEY');
-  if(!user && !isDemo){window.location.href='auth.html';return;}
-  const name = user ? (user.displayName || user.email) : 'Demo Admin';
+const isDemoMode = (typeof firebaseConfig !== 'undefined' && firebaseConfig.apiKey === 'YOUR_API_KEY');
+
+auth.onAuthStateChanged(async user => {
+  if(!user && !isDemoMode){window.location.href='auth.html';return;}
+  
+  let name = 'User';
+  
+  if (isDemoMode) {
+    const storedUser = JSON.parse(localStorage.getItem('sn_current_user') || '{}');
+    name = storedUser.name || 'Demo Admin';
+  } else if (user) {
+    name = user.displayName || user.email;
+    // Try to fetch from database if name is missing in profile
+    if (!user.displayName && typeof db !== 'undefined') {
+      try {
+        const snap = await db.ref('users/' + user.uid + '/name').once('value');
+        if (snap.val()) name = snap.val();
+      } catch(e) {}
+    }
+  }
+
   const el=document.getElementById('sidebarUserName');
   if(el) el.textContent=name;
   const av=document.getElementById('headerAvatar');
-  if(av) av.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`;
-  initFirebaseListeners();
+  const headerAv = document.getElementById('headerAvatar');
+  if(headerAv) headerAv.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`;
+  
+  // Set avatar in sidebar too
+  const sidebarAv = document.querySelector('.sidebar-avatar');
+  if (sidebarAv) sidebarAv.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`;
+
+  if (!isDemoMode) initFirebaseListeners();
 });
 
 function logout(){
-  auth.signOut().then(()=>window.location.href='auth.html');
+  if (isDemoMode) {
+    localStorage.removeItem('sn_current_user');
+    window.location.href = 'auth.html';
+  } else {
+    auth.signOut().then(()=>window.location.href='auth.html');
+  }
 }
 
 // ── Sidebar ──
@@ -111,7 +139,7 @@ function toggleLock(id,name){
     btn.disabled=false;
     showToast(`${name} ${lockStates[id]?'locked':'unlocked'} successfully`,lockStates[id]?'info':'success');
     // Write to Firebase
-    if(typeof db!=='undefined'){
+    if(!isDemoMode && typeof db!=='undefined'){
       db.ref('locks/'+name.toLowerCase().replace(/ /g,'_')).set({
         locked:lockStates[id],updated_at:Date.now()
       });
@@ -126,6 +154,7 @@ function updateLockUI(id){
   const badge=document.getElementById('lockBadge'+id);
   const icon=document.getElementById('lockIcon'+id);
   const ring=document.getElementById('lockRing'+id);
+  if(!btn) return;
   if(locked){
     btn.className='lock-btn unlock-btn';
     btn.innerHTML='<i class="fa-solid fa-unlock"></i> Unlock Door';
@@ -274,7 +303,10 @@ function exportLogsCSV(){
   a.href='data:text/csv,'+encodeURIComponent(csv);
   a.download='access_logs.csv'; a.click();
 }
-function exportLogsPDF(){ showToast('PDF export requires backend. Run Flask server.','warning'); }
+function exportLogsPDF(){
+  showToast('Generating PDF... Please wait','info');
+  window.open(`${BACKEND}/api/logs/export/pdf`, '_blank');
+}
 
 // ── Camera ──
 const CAMERA_DATA=[
@@ -385,8 +417,46 @@ function renderFamily(){
       </div>
     </div>`).join('');
 }
-function openAddMember(){ showToast('Add Member panel coming soon!','info'); }
-function editMember(i){ showToast(`Edit ${MEMBERS[i].name} – coming soon!`,'info'); }
+function openAddMember(){
+  document.getElementById('memberModalTitle').textContent='Add Family Member';
+  document.getElementById('memberIndex').value='-1';
+  document.getElementById('memberForm').reset();
+  document.getElementById('memberModal').classList.add('open');
+}
+
+function editMember(i){
+  const m=MEMBERS[i];
+  document.getElementById('memberModalTitle').textContent='Edit Member';
+  document.getElementById('memberIndex').value=i;
+  document.getElementById('mName').value=m.name;
+  document.getElementById('mRole').value=m.role;
+  document.getElementById('pFront').checked=m.perms.front;
+  document.getElementById('pBack').checked=m.perms.back;
+  document.getElementById('pGarage').checked=m.perms.garage;
+  document.getElementById('memberModal').classList.add('open');
+}
+
+function handleMemberSubmit(e){
+  e.preventDefault();
+  const idx=parseInt(document.getElementById('memberIndex').value);
+  const name=document.getElementById('mName').value;
+  const role=document.getElementById('mRole').value;
+  const perms={
+    front:document.getElementById('pFront').checked,
+    back:document.getElementById('pBack').checked,
+    garage:document.getElementById('pGarage').checked
+  };
+
+  if(idx===-1){
+    MEMBERS.push({name,role,bg:'6366f1',face:true,fp:true,app:false,perms});
+    showToast('Member added successfully','success');
+  }else{
+    MEMBERS[idx]={...MEMBERS[idx],name,role,perms};
+    showToast('Member updated successfully','success');
+  }
+  renderFamily();
+  document.getElementById('memberModal').classList.remove('open');
+}
 
 // ── Settings ──
 function saveSetting(key,val){
@@ -412,7 +482,12 @@ function rebootSystem(){
   showToast('Reboot command sent to ESP32/RPi','info');
 }
 function logoutAllDevices(){
-  auth.signOut().then(()=>window.location.href='auth.html');
+  if (isDemoMode) {
+    localStorage.removeItem('sn_current_user');
+    window.location.href = 'auth.html';
+  } else {
+    auth.signOut().then(()=>window.location.href='auth.html');
+  }
 }
 
 // ── Firebase Realtime Listeners ──
@@ -487,8 +562,74 @@ function startVoice(){
   showToast('Listening… say a command','info');
 }
 
+// ── Theme & Theme Colors ──
+const root = document.documentElement;
+const primaryColor = localStorage.getItem('sn_primary_color') || '#3b82f6';
+const sidebarColor = localStorage.getItem('sn_sidebar_color') || (html.getAttribute('data-theme')==='dark'?'#0f172a':'#ffffff');
+
+function toggleThemeDrawer(){
+  document.getElementById('themeDrawer').classList.toggle('open');
+  document.getElementById('drawerBackdrop').classList.toggle('show');
+}
+
+function applyThemeColors(){
+  const p = localStorage.getItem('sn_primary_color') || '#3b82f6';
+  const s = localStorage.getItem('sn_sidebar_color') || (html.getAttribute('data-theme')==='dark'?'#0f172a':'#ffffff');
+  
+  root.style.setProperty('--color-primary', p);
+  root.style.setProperty('--bg-sidebar', s);
+  
+  // Update all color inputs
+  document.querySelectorAll('.color-input').forEach(el => {
+    if(el.onchange.toString().includes('updatePrimaryColor')) el.value = p;
+    if(el.onchange.toString().includes('updateSidebarColor')) el.value = s;
+  });
+}
+
+
+
+function updatePrimaryColor(val){
+  localStorage.setItem('sn_primary_color', val);
+  root.style.setProperty('--color-primary', val);
+  showToast('Primary color updated','success');
+}
+
+function updateSidebarColor(val){
+  localStorage.setItem('sn_sidebar_color', val);
+  root.style.setProperty('--bg-sidebar', val);
+  showToast('Sidebar color updated','success');
+}
+
+function resetTheme(){
+  localStorage.removeItem('sn_primary_color');
+  localStorage.removeItem('sn_sidebar_color');
+  applyThemeColors();
+  showToast('Theme reset to default','info');
+}
+
+// Update toggleTheme to handle sidebar color reset if needed
+function toggleTheme(){
+  const t=html.getAttribute('data-theme')==='dark'?'light':'dark';
+  html.setAttribute('data-theme',t);
+  localStorage.setItem('sn_theme',t);
+  
+  const cb=document.getElementById('darkModeToggle');
+  if(cb) cb.checked=(t==='light');
+  
+  const hToggle = document.getElementById('darkToggleHeader');
+  if(hToggle) hToggle.checked = (t === 'light');
+  
+  // Update sidebar color if it's default
+  if(!localStorage.getItem('sn_sidebar_color')){
+    root.style.setProperty('--bg-sidebar', t==='dark'?'#0f172a':'#ffffff');
+  }
+  
+  if(actChart) initCharts();
+}
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded',()=>{
+  applyThemeColors();
   renderFeed();
   renderLogs();
   renderCamera();

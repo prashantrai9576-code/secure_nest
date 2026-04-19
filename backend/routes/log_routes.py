@@ -60,3 +60,49 @@ def export_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=access_logs.csv"}
     )
+
+
+@log_bp.route("/export/pdf", methods=["GET"])
+def export_pdf():
+    """GET /api/logs/export/pdf – Export logs as PDF."""
+    from fpdf import FPDF
+    
+    logs = fb.read("access_logs") or {}
+    rows = list(logs.values()) if isinstance(logs, dict) else DEMO_LOGS
+    rows.sort(key=lambda x: x.get("timestamp",""), reverse=True)
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(190, 10, "Secure Nest – Access Logs Report", ln=True, align="C")
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(190, 10, f"Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
+    pdf.ln(10)
+
+    # Table Header
+    pdf.set_fill_color(59, 130, 246)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(40, 10, "User", 1, 0, "C", True)
+    pdf.cell(50, 10, "Timestamp", 1, 0, "C", True)
+    pdf.cell(40, 10, "Door", 1, 0, "C", True)
+    pdf.cell(30, 10, "Method", 1, 0, "C", True)
+    pdf.cell(30, 10, "Status", 1, 1, "C", True)
+
+    # Table Rows
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Arial", "", 9)
+    for row in rows:
+        ts = row.get("timestamp", "").replace("T", " ")[:19]
+        pdf.cell(40, 8, str(row.get("user","")), 1)
+        pdf.cell(50, 8, ts, 1)
+        pdf.cell(40, 8, str(row.get("door","")), 1)
+        pdf.cell(30, 8, str(row.get("method","")), 1)
+        pdf.cell(30, 8, str(row.get("status","")), 1, 1)
+
+    return Response(
+        pdf.output(),
+        mimetype="application/pdf",
+        headers={"Content-Disposition": "attachment;filename=access_logs_report.pdf"}
+    )
+

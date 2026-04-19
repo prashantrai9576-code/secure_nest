@@ -1,17 +1,16 @@
 // ================================================
 // firebase-config.js – Firebase SDK Initialization
-// Replace the config below with your Firebase project config.
-// Get it from: Firebase Console → Project Settings → Your Apps
 // ================================================
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL:       "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyDs6vkqGfuJWho0nzgyuDVes2GMTttLSTg",
+  authDomain:        "nest-901c8.firebaseapp.com",
+  projectId:         "nest-901c8",
+  storageBucket:     "nest-901c8.firebasestorage.app",
+  messagingSenderId: "364107426144",
+  appId:             "1:364107426144:web:5353a90d575c82f7361605",
+  measurementId:     "G-S40FHWX5QS",
+  databaseURL:       "https://nest-901c8-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
@@ -20,3 +19,4 @@ firebase.initializeApp(firebaseConfig);
 // Export references
 const auth = firebase.auth();
 const db   = firebase.database();
+const analytics = firebase.analytics ? firebase.analytics() : null;
