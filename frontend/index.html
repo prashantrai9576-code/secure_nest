@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure Nest – Smart Biometric Door Security System</title>
+<meta name="description" content="Secure Nest is a next-gen smart biometric door lock system using AI face recognition, fingerprint auth, and IoT cloud control.">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="landing-page">
+
+<!-- Background Blobs -->
+<div class="bg-blobs">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="landing-nav" id="landingNav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-icon"><i class="fa-solid fa-fingerprint"></i></div>
+      <span class="nav-logo-text">Secure<span>Nest</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#howitworks" class="nav-link">How It Works</a>
+      <a href="#tech" class="nav-link">Tech Stack</a>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-btn" id="themeBtn" title="Toggle theme">
+        <i class="fa-solid fa-moon moon-icon"></i>
+        <i class="fa-solid fa-sun sun-icon"></i>
+      </button>
+      <a href="auth.html" class="btn btn-secondary btn-sm">Login</a>
+      <a href="auth.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Next-Gen AI Biometric Security</div>
+  <h1 class="hero-title">
+    Smart Biometric<br>
+    <span class="text-gradient">Door Security System</span>
+  </h1>
+  <p class="hero-subtitle">
+    Protect your home with enterprise-grade face recognition, fingerprint authentication, and real-time IoT monitoring. The future of access control is here.
+  </p>
+  <div class="hero-actions">
+    <a href="auth.html" class="btn btn-primary btn-lg">
+      <i class="fa-solid fa-shield-halved"></i> Access System
+    </a>
+    <a href="#features" class="btn btn-secondary btn-lg">
+      <i class="fa-solid fa-play-circle"></i> Learn More
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-number">99.8%</div>
+      <div class="hero-stat-label">Recognition Accuracy</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-number">&lt;0.5s</div>
+      <div class="hero-stat-label">Auth Speed</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-number">24/7</div>
+      <div class="hero-stat-label">Cloud Monitoring</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-number">3-Layer</div>
+      <div class="hero-stat-label">Security Protocol</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Core Features</span>
+      <h2 class="section-title">Everything You Need to Stay <span class="text-gradient">Secure</span></h2>
+      <p class="section-desc">A complete smart security ecosystem built for modern homes and enterprises.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card animate-fade-in">
+        <div class="feature-icon feature-icon-blue"><i class="fa-solid fa-face-viewfinder"></i></div>
+        <h3 class="feature-title">AI Face Recognition</h3>
+        <p class="feature-desc">Advanced ML algorithms authenticate users in under 0.5 seconds, even in low-light conditions using infrared scanning.</p>
+      </div>
+      <div class="feature-card animate-fade-in delay-100">
+        <div class="feature-icon feature-icon-cyan"><i class="fa-solid fa-fingerprint"></i></div>
+        <h3 class="feature-title">Fingerprint Auth</h3>
+        <p class="feature-desc">Capacitive fingerprint sensor with 360° readability. Stores up to 100 fingerprint templates locally and in cloud.</p>
+      </div>
+      <div class="feature-card animate-fade-in delay-200">
+        <div class="feature-icon feature-icon-purple"><i class="fa-solid fa-wifi"></i></div>
+        <h3 class="feature-title">IoT Cloud Control</h3>
+        <p class="feature-desc">Lock, unlock, and monitor your doors from anywhere in the world via real-time Firebase syncing with ESP32/Raspberry Pi.</p>
+      </div>
+      <div class="feature-card animate-fade-in delay-300">
+        <div class="feature-icon feature-icon-red"><i class="fa-solid fa-bell-on"></i></div>
+        <h3 class="feature-title">Instant Alerts</h3>
+        <p class="feature-desc">Receive push notifications for unauthorized access, tampering detection, or multiple failed attempts in real-time.</p>
+      </div>
+      <div class="feature-card animate-fade-in delay-400">
+        <div class="feature-icon feature-icon-green"><i class="fa-solid fa-chart-line"></i></div>
+        <h3 class="feature-title">Access Analytics</h3>
+        <p class="feature-desc">Detailed access logs with charts showing weekly patterns, unauthorized attempts, and user activity over time.</p>
+      </div>
+      <div class="feature-card animate-fade-in delay-400">
+        <div class="feature-icon feature-icon-yellow"><i class="fa-solid fa-users"></i></div>
+        <h3 class="feature-title">Multi-User Management</h3>
+        <p class="feature-desc">Add family members, assign granular lock permissions, manage face and fingerprint data through a clean admin panel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section class="tech-section" id="tech">
+  <div class="container">
+    <div class="section-header" style="margin-bottom:2rem">
+      <span class="section-label">Tech Stack</span>
+      <h2 class="section-title">Built With <span class="text-gradient">Industry-Grade</span> Technology</h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-badge"><i class="fa-brands fa-python" style="color:#3b82f6"></i> Python Flask</div>
+      <div class="tech-badge"><i class="fa-solid fa-fire" style="color:#f59e0b"></i> Firebase</div>
+      <div class="tech-badge"><i class="fa-brands fa-js" style="color:#eab308"></i> JavaScript</div>
+      <div class="tech-badge"><i class="fa-solid fa-microchip" style="color:#22d3ee"></i> ESP32 / RPi</div>
+      <div class="tech-badge"><i class="fa-solid fa-brain" style="color:#a78bfa"></i> OpenCV / DeepFace</div>
+      <div class="tech-badge"><i class="fa-solid fa-chart-bar" style="color:#fb923c"></i> Chart.js</div>
+      <div class="tech-badge"><i class="fa-solid fa-cloud" style="color:#60a5fa"></i> Firebase Auth</div>
+      <div class="tech-badge"><i class="fa-solid fa-database" style="color:#34d399"></i> Firestore</div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-section" id="howitworks">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Process</span>
+      <h2 class="section-title">How <span class="text-gradient">Secure Nest</span> Works</h2>
+      <p class="section-desc">Four simple steps from biometric scan to secure access.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card animate-slide-up">
+        <div class="step-number">1</div>
+        <h4 class="step-title">Biometric Scan</h4>
+        <p class="step-desc">Camera or fingerprint sensor captures user's biometric data at the door.</p>
+      </div>
+      <div class="step-card animate-slide-up delay-100">
+        <div class="step-number">2</div>
+        <h4 class="step-title">AI Processing</h4>
+        <p class="step-desc">Raspberry Pi runs face recognition / fingerprint matching against stored templates.</p>
+      </div>
+      <div class="step-card animate-slide-up delay-200">
+        <div class="step-number">3</div>
+        <h4 class="step-title">Cloud Sync</h4>
+        <p class="step-desc">Result is written to Firebase Realtime DB, dashboard updates instantly.</p>
+      </div>
+      <div class="step-card animate-slide-up delay-300">
+        <div class="step-number">4</div>
+        <h4 class="step-title">Lock Control</h4>
+        <p class="step-desc">ESP32 receives unlock command and physically opens the door electromagnet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <a href="index.html" class="nav-logo" style="margin-bottom:.25rem">
+          <div class="nav-logo-icon"><i class="fa-solid fa-fingerprint"></i></div>
+          <span class="nav-logo-text">Secure<span>Nest</span></span>
+        </a>
+        <p class="footer-brand-text">Next-generation smart biometric door security system for homes and enterprises. Built as a Final Year Project.</p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn"><i class="fa-brands fa-github"></i></a>
+          <a href="#" class="social-btn"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#" class="social-btn"><i class="fa-brands fa-twitter"></i></a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">Product</p>
+        <div class="footer-links">
+          <a href="#features">Features</a>
+          <a href="#howitworks">How It Works</a>
+          <a href="#tech">Tech Stack</a>
+          <a href="auth.html">Dashboard</a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">Security</p>
+        <div class="footer-links">
+          <a href="#">Face Recognition</a>
+          <a href="#">Fingerprint Auth</a>
+          <a href="#">IoT Control</a>
+          <a href="#">Access Logs</a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">Project</p>
+        <div class="footer-links">
+          <a href="#">Documentation</a>
+          <a href="#">GitHub Repo</a>
+          <a href="#">Report Bug</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Secure Nest. Final Year Project.</span>
+      <span>Built with <i class="fa-solid fa-heart" style="color:var(--color-danger)"></i> using Python Flask + Firebase</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Theme toggle
+const themeBtn = document.getElementById('themeBtn');
+const html = document.documentElement;
+const savedTheme = localStorage.getItem('sn_theme') || 'dark';
+html.setAttribute('data-theme', savedTheme);
+
+themeBtn.addEventListener('click', () => {
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('sn_theme', next);
+});
+
+// Navbar scroll
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('landingNav');
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+</script>
+</body>
+</html>
