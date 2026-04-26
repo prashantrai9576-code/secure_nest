@@ -25,6 +25,23 @@ auth.onAuthStateChanged(async user => {
     const storedUser = JSON.parse(localStorage.getItem('sn_current_user') || '{}');
     name = storedUser.name || 'Demo Admin';
   } else if (user) {
+    // 1. Immediate Email Bypass (No DB wait)
+    const userEmail = (user.email || "").toLowerCase().trim();
+    if (userEmail === 'hr239531@gmail.com') {
+        window.location.href = 'super_admin.html';
+        return;
+    }
+
+    // 2. Check role in DB
+    try {
+        const snap = await db.ref('users/' + user.uid).once('value');
+        const userData = snap.val();
+        if (userData && userData.role === 'SuperAdmin') {
+            window.location.href = 'super_admin.html';
+            return;
+        }
+    } catch(e) {}
+
     name = user.displayName || user.email;
     // Try to fetch from database if name is missing in profile
     if (!user.displayName && typeof db !== 'undefined') {
