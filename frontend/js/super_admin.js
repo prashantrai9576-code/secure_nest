@@ -10,24 +10,17 @@ auth.onAuthStateChanged(async user => {
 
     // Double check role
     try {
-        const userEmail = (user.email || "").toLowerCase().trim();
-        const isEmailSA = (userEmail === 'hr239531@gmail.com');
-
         const snapshot = await db.ref('users/' + user.uid).once('value');
         const userData = snapshot.val();
         
         const isDbSA = (userData && userData.role === 'SuperAdmin');
         
-        if (!isDbSA && !isEmailSA) {
+        if (!isDbSA) {
             showToast('Access Denied: Super Admin Only', 'danger');
             setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
             return;
         }
 
-        // If role was missing but email matches, fix it in DB silently
-        if (isEmailSA && !isDbSA) {
-             await db.ref('users/' + user.uid + '/role').set('SuperAdmin');
-        }
         
         // If we are on the users tab, fetch them
         if (document.getElementById('tab-users').classList.contains('active')) {

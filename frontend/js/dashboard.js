@@ -275,42 +275,60 @@ function renderFeed(){
 }
 
 // ── Logs ──
-const LOGS_DATA=[
-  {user:'John Doe',bg:'3b82f6',date:'Apr 19, 2026','time':'08:30 AM',door:'Front Door',method:'Face',status:'Granted'},
-  {user:'Unknown Person',bg:'ef4444',date:'Apr 19, 2026','time':'02:15 AM',door:'Back Door',method:'Face',status:'Denied'},
-  {user:'Admin User',bg:'3b82f6',date:'Apr 18, 2026','time':'10:45 PM',door:'Garage Door',method:'Web App',status:'Granted'},
-  {user:'Sarah Smith',bg:'a78bfa',date:'Apr 18, 2026','time':'06:10 PM',door:'Front Door',method:'Fingerprint',status:'Granted'},
-  {user:'Raj Kumar',bg:'34d399',date:'Apr 18, 2026','time':'09:00 AM',door:'Front Door',method:'Face',status:'Granted'},
-  {user:'Unknown Person',bg:'ef4444',date:'Apr 17, 2026','time':'03:44 AM',door:'Back Door',method:'Fingerprint',status:'Denied'},
-];
-let filteredLogs=LOGS_DATA;
-function filterLogs(){
-  const q=document.getElementById('logsSearch').value.toLowerCase();
-  const d=document.getElementById('doorFilter').value;
-  const s=document.getElementById('statusFilter').value;
-  filteredLogs=LOGS_DATA.filter(l=>{
-    return (!q||l.user.toLowerCase().includes(q)||l.door.toLowerCase().includes(q))
-      &&(!d||l.door===d)&&(!s||l.status===s);
-  });
-  renderLogs();
+async function fetchLogs() {
+  try {
+    const res = await fetch(`${BACKEND}/api/logs`);
+    const data = await res.json();
+    if (data.success) {
+      filteredLogs = data.logs;
+      renderLogs();
+      updateDashboardStats(data.logs);
+    }
+  } catch (e) {
+    console.error("Failed to fetch logs:", e);
+  }
 }
-const methodIcons={Face:'fa-face-viewfinder',Fingerprint:'fa-fingerprint','Web App':'fa-mobile-screen'};
-const methodColors={Face:'#3b82f6',Fingerprint:'#6366f1','Web App':'#a78bfa'};
-function renderLogs(){
-  const tbody=document.getElementById('logsBody');
-  if(!tbody) return;
-  tbody.innerHTML=filteredLogs.map(l=>`<tr>
+
+function updateDashboardStats(logs) {
+  const today = new Date().toISOString().split('T')[0];
+  const todayEntries = logs.filter(l => l.timestamp.startsWith(today) && l.status === 'Granted').length;
+  const el = document.getElementById('statEntries');
+  if (el) el.textContent = todayEntries;
+}
+
+async function fetchAlerts() {
+  try {
+    const res = await fetch(`${BACKEND}/api/alerts`);
+    const data = await res.json();
+    if (data.success) {
+      renderAlertsList(data.alerts);
+      const badge = document.getElementById('alertBadge');
+      if (badge) badge.textContent = data.count;
+      const stat = document.getElementById('statAlerts');
+      if (stat) stat.textContent = data.count;
+    }
+  } catch (e) {
+    console.error("Failed to fetch alerts:", e);
+  }
+}
+
+function renderLogs() {
+  const tbody = document.getElementById('logsBody');
+  if (!tbody) return;
+  tbody.innerHTML = filteredLogs.map(l => {
+    const isUnknown = l.user === 'Unknown' || l.user === 'Unknown Person';
+    return `<tr>
     <td><div class="user-cell">
-      ${l.user==='Unknown Person'
-        ?'<div class="user-unknown"><i class="fa-solid fa-user-secret"></i></div>'
-        :`<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(l.user)}&background=${l.bg}&color=fff" class="user-avatar">`}
-      <span style="font-weight:600;${l.status==='Denied'?'color:var(--color-danger)':''}">${l.user}</span>
+      ${isUnknown
+        ? '<div class="user-unknown"><i class="fa-solid fa-user-secret"></i></div>'
+        : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(l.user)}&background=3b82f6&color=fff" class="user-avatar">`}
+      <span style="font-weight:600;${l.status === 'Denied' ? 'color:var(--color-danger)' : ''}">${l.user}</span>
     </div></td>
-    <td style="color:var(--text-muted)">${l.date} · ${l.time}</td>
+    <td style="color:var(--text-muted)">${l.timestamp.replace('T', ' ').substring(0, 16)}</td>
     <td>${l.door}</td>
-    <td><span style="display:flex;align-items:center;gap:.35rem"><i class="fa-solid ${methodIcons[l.method]}" style="color:${methodColors[l.method]}"></i>${l.method}</span></td>
-    <td><span class="badge ${l.status==='Granted'?'badge-success':'badge-danger'}">${l.status}</span></td>
-  </tr>`).join('');
+    <td><span style="display:flex;align-items:center;gap:.35rem"><i class="fa-solid ${methodIcons[l.method] || 'fa-key'}" style="color:${methodColors[l.method] || '#94a3b8'}"></i>${l.method}</span></td>
+    <td><span class="badge ${l.status === 'Granted' || l.status === 'Success' ? 'badge-success' : 'badge-danger'}">${l.status}</span></td>
+  </tr>`}).join('');
 }
 function loadMoreLogs(){ showToast('All logs loaded','info'); }
 function exportLogsCSV(){
@@ -332,32 +350,42 @@ const CAMERA_DATA=[
   {src:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&fit=crop',cam:'Front Door Cam',status:'Known',label:'Sarah Smith',time:'Yesterday 06:10 PM',alert:false},
   {src:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&fit=crop',cam:'Garage Cam',status:'Known',label:'Raj Kumar',time:'Yesterday 09:00 AM',alert:false},
 ];
-function renderCamera(){
-  const grid=document.getElementById('cameraGrid');
-  if(!grid) return;
-  grid.innerHTML=CAMERA_DATA.map((c,i)=>`
-    <div class="cam-card ${c.alert?'alert-ring':''}" onclick="openImgModal(${i})">
+function renderCamera() {
+  const grid = document.getElementById('cameraGrid');
+  if (!grid) return;
+  
+  const logsWithImages = filteredLogs.filter(l => l.image_url);
+  
+  if (logsWithImages.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">No camera records found yet.</div>';
+    return;
+  }
+
+  grid.innerHTML = logsWithImages.map((l, i) => `
+    <div class="cam-card ${l.status === 'Denied' ? 'alert-ring' : ''}" onclick="openImgModalFromLog(${i})">
       <div class="cam-img-wrap">
-        ${c.src?`<img src="${c.src}" alt="${c.cam}" loading="lazy">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--text-muted)"><i class="fa-solid fa-user-secret"></i></div>`}
-        <div class="cam-overlay-badge">${c.alert?'<i class="fa-solid fa-video" style="color:#ef4444"></i> Alert':'<i class="fa-solid fa-video" style="color:#ef4444"></i> Rec'}</div>
+        <img src="${l.image_url}" alt="${l.door}" loading="lazy">
+        <div class="cam-overlay-badge">
+          <i class="fa-solid fa-video" style="color:#ef4444"></i> 
+          ${l.status === 'Denied' ? 'Alert' : 'Capture'}
+        </div>
       </div>
       <div class="cam-info">
         <div class="cam-info-row">
-          <span class="cam-name">${c.cam}</span>
-          <span class="badge ${c.status==='Known'?'badge-success':'badge-danger'}">${c.status}</span>
+          <span class="cam-name">${l.door}</span>
+          <span class="badge ${l.status === 'Granted' || l.status === 'Success' ? 'badge-success' : 'badge-danger'}">${l.status}</span>
         </div>
-        <div class="cam-time"><i class="fa-regular fa-clock"></i> ${c.time}</div>
-        <div class="cam-id ${c.alert?'text-danger':''}">${c.label}</div>
+        <div class="cam-time"><i class="fa-regular fa-clock"></i> ${l.timestamp.replace('T', ' ').substring(0, 16)}</div>
+        <div class="cam-id">${l.user}</div>
       </div>
     </div>`).join('');
 }
-function openImgModal(i){
-  const c=CAMERA_DATA[i];
-  const m=document.getElementById('imgModal');
-  const img=document.getElementById('imgModalSrc');
-  img.src=c.src||'https://via.placeholder.com/600x400/1e293b/ef4444?text=UNKNOWN';
-  document.getElementById('imgModalLabel').textContent=c.cam+' – '+c.status;
-  document.getElementById('imgModalSub').textContent=c.time+' · '+c.label;
+
+function openImgModalFromLog(i) {
+  const l = filteredLogs.filter(log => log.image_url)[i];
+  const m = document.getElementById('imgModal');
+  const img = document.getElementById('imgModalSrc');
+  img.src = l.image_url;
   m.classList.add('open');
 }
 function closeImgModal(e){ if(e.target===e.currentTarget) document.getElementById('imgModal').classList.remove('open'); }
@@ -453,26 +481,59 @@ function editMember(i){
   document.getElementById('memberModal').classList.add('open');
 }
 
-function handleMemberSubmit(e){
+async function handleMemberSubmit(e){
   e.preventDefault();
-  const idx=parseInt(document.getElementById('memberIndex').value);
-  const name=document.getElementById('mName').value;
-  const role=document.getElementById('mRole').value;
-  const perms={
-    front:document.getElementById('pFront').checked,
-    back:document.getElementById('pBack').checked,
-    garage:document.getElementById('pGarage').checked
+  const name = document.getElementById('mName').value;
+  const role = document.getElementById('mRole').value;
+  const imageFile = document.getElementById('mImage').files[0];
+  const perms = {
+    front: document.getElementById('pFront').checked,
+    back: document.getElementById('pBack').checked,
+    garage: document.getElementById('pGarage').checked
   };
 
-  if(idx===-1){
-    MEMBERS.push({name,role,bg:'6366f1',face:true,fp:true,app:false,perms});
-    showToast('Member added successfully','success');
-  }else{
-    MEMBERS[idx]={...MEMBERS[idx],name,role,perms};
-    showToast('Member updated successfully','success');
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('role', role);
+  formData.append('permissions', JSON.stringify(perms));
+  if (imageFile) formData.append('image', imageFile);
+
+  showToast('Adding member...', 'info');
+  
+  try {
+    const res = await fetch(`${BACKEND}/api/member/add`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Member added and face registered!', 'success');
+      document.getElementById('memberModal').classList.remove('open');
+      fetchMembers(); // Refresh list
+    } else {
+      showToast(data.error, 'danger');
+    }
+  } catch (e) {
+    showToast('Failed to connect to server', 'danger');
   }
-  renderFamily();
-  document.getElementById('memberModal').classList.remove('open');
+}
+
+async function fetchMembers() {
+  try {
+    const res = await fetch(`${BACKEND}/api/member/list`);
+    const data = await res.json();
+    // Update local MEMBERS array and re-render
+    MEMBERS = data.map(m => ({
+      name: m.name,
+      role: m.role,
+      bg: '3b82f6',
+      face: m.has_face,
+      fp: m.has_fingerprint || false,
+      app: true,
+      perms: typeof m.permissions === 'string' ? JSON.parse(m.permissions) : m.permissions
+    }));
+    renderFamily();
+  } catch (e) {}
 }
 
 // ── Settings ──
@@ -648,13 +709,19 @@ function toggleTheme(){
 document.addEventListener('DOMContentLoaded',()=>{
   applyThemeColors();
   renderFeed();
-  renderLogs();
+  fetchLogs();
+  fetchAlerts();
+  fetchMembers();
   renderCamera();
-  renderAlerts();
   renderFamily();
+  
+  // Set intervals for real-time polling (backup to Firebase)
+  setInterval(fetchLogs, 5000);
+  setInterval(fetchAlerts, 10000);
+
   // init dark mode toggle checkbox
   const cb=document.getElementById('darkModeToggle');
-  if(cb) cb.checked=(html.getAttribute('data-theme')==='light');
+  if(cb) cb.checked=(html.getAttribute('data-theme')['light']);
   // init charts after slight delay
   setTimeout(initCharts,200);
 });

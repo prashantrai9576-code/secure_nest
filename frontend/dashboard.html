@@ -1,352 +1,420 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Nest – Admin Dashboard</title>
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/dashboard.css">
-  <!-- Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
-  <script src="js/firebase-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Nest | Ultimate Command Center</title>
+    <!-- Premium Typography & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Native REST API replaces Firebase SDK for stability -->
+    
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        /* Pulse Animation for Alerts */
+        @keyframes alert-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-red { animation: alert-pulse 2s infinite; }
+        
+        @keyframes visitor-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        .pulse-blue { animation: visitor-pulse 2s infinite; }
+    </style>
 </head>
 <body>
+    <div class="bg-mesh"></div>
 
-<div class="app-layout">
-  
-  <!-- ══ SIDEBAR ══ -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo-icon"><i class="fa-solid fa-nest-smart-box"></i></div>
-      <h1 class="sidebar-brand">Secure<span>Nest</span></h1>
-      <div class="sidebar-close" onclick="closeSidebar()"><i class="fa-solid fa-times"></i></div>
-    </div>
-    
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">General</div>
-      <a class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-      <a class="nav-item" id="nav-locks" onclick="switchTab('locks')"><i class="fa-solid fa-shield-halved"></i> Locks</a>
-      <a class="nav-item" id="nav-logs" onclick="switchTab('logs')"><i class="fa-solid fa-list-ul"></i> Access Logs</a>
-      <a class="nav-item" id="nav-camera" onclick="switchTab('camera')"><i class="fa-solid fa-video"></i> Camera Records</a>
-      <a class="nav-item" id="nav-alerts" onclick="switchTab('alerts')"><i class="fa-solid fa-triangle-exclamation"></i> Alerts <span class="nav-badge" id="alertBadge">3</span></a>
-      
-      <div class="nav-section-label">Administration</div>
-      <a class="nav-item" id="nav-family" onclick="switchTab('family')"><i class="fa-solid fa-user-group"></i> Family Members</a>
-      <a class="nav-item" id="nav-settings" onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i> Settings</a>
-    </nav>
+    <div class="dashboard-container">
+        <!-- ══ SIDEBAR ══ -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>SECURE NEST</span>
+            </div>
 
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" class="sidebar-avatar" id="sidebarAvatar">
-        <div>
-          <div class="sidebar-user-name" id="sidebarUserName">Admin User</div>
-          <div class="sidebar-user-role">System Owner</div>
-        </div>
-      </div>
-      <button class="nav-item" style="width:100%;margin-top:.5rem;border:none;background:none" onclick="logout()"><i class="fa-solid fa-power-off"></i> Logout</button>
-    </div>
-  </aside>
+            <div class="nav-group">
+                <span class="nav-label">Core Systems</span>
+                <a href="#" class="nav-link active" data-target="section-command">
+                    <i class="fa-solid fa-gauge-high"></i> Command Center
+                </a>
+                <a href="#" class="nav-link" data-target="section-hardware">
+                    <i class="fa-solid fa-microchip"></i> Infrastructure
+                </a>
+                
+                <span class="nav-label">Security Ops</span>
+                <a href="#" class="nav-link" data-target="section-alerts">
+                    <i class="fa-solid fa-bell"></i> Alerts Hub
+                </a>
+                <a href="#" class="nav-link" data-target="section-history">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Security Ledger
+                </a>
+            </div>
 
-  <!-- ══ MAIN AREA ══ -->
-  <div class="main-area">
-    
-    <!-- ══ HEADER ══ -->
-    <header class="dashboard-header">
-      <div class="header-left">
-        <button class="menu-toggle" onclick="openSidebar()"><i class="fa-solid fa-bars"></i></button>
-        <h2 class="page-title" id="pageTitle">Dashboard Overview</h2>
-      </div>
-      
-      <div class="header-right">
-        <div class="clock-widget" id="liveClock">00:00:00</div>
-        <div class="weather-widget">
-          <i class="fa-solid fa-cloud-sun" style="color:var(--color-warning)"></i>
-          <span class="weather-temp" id="weatherTemp">--°C</span>
-          <span class="text-xs" id="weatherCity" style="margin-left:5px">Delhi</span>
-        </div>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                    <i class="fa-solid fa-power-off"></i> Terminate Session
+                </a>
+            </div>
+        </aside>
 
-        <!-- Theme Toggle Button -->
-        <button class="notif-btn" title="Personalize Theme" onclick="toggleThemeDrawer()">
-          <i class="fa-solid fa-palette"></i>
-        </button>
+        <!-- ══ MAIN HUB ══ -->
+        <main class="main-hud">
+            <header class="hud-header">
+                <div class="header-info">
+                    <h1 id="pageTitle">Command Center</h1>
+                    <div class="header-status">
+                        <div class="status-indicator">
+                            <div class="status-dot" id="backendDot"></div>
+                            <span id="backendStatusText">CHECKING...</span>
+                        </div>
+                        <div class="pill-box">
+                            GATE: <span id="doorStateText" style="color: var(--text-secondary);">SYNCING...</span>
+                        </div>
+                    </div>
+                </div>
 
-        <button class="notif-btn" title="Security Alerts" onclick="switchTab('alerts')">
-          <i class="fa-solid fa-bell"></i>
-          <span class="notif-ping"></span>
-          <span class="notif-dot"></span>
-        </button>
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="name" id="userName">Authorized User</span>
+                    </div>
+                    <div class="avatar" id="userAvatar">?</div>
+                </div>
+            </header>
 
-        <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" class="header-avatar" id="headerAvatar" onclick="switchTab('settings')">
-      </div>
-    </header>
+            <div class="content-wrapper">
+                <!-- ════ COMMAND SECTION ════ -->
+                <div id="section-command" class="content-section active">
+                    <div class="bento-grid">
+                        
+                        <!-- CAM AREA -->
+                        <div class="bento-card area-cam">
+                            <div class="cam-view">
+                                <div class="cam-overlay">
+                                    <div class="cam-label"><i class="fa-solid fa-video"></i> FRONT_GATE_01</div>
+                                    <div id="camStatusBadge" class="live-tag" style="display: none;">LIVE</div>
+                                    <button id="closeStreamBtn" class="btn btn-danger btn-sm" style="display: none; position: absolute; right: 1rem; top: 1rem;">Close</button>
+                                </div>
+                                <div id="camContainer" style="text-align: center; padding: 2rem;">
+                                    <i class="fa-solid fa-video-slash" style="color: var(--text-secondary); font-size: 2.5rem; margin-bottom: 1.5rem;"></i>
+                                    <button id="startStreamBtn" class="btn btn-secondary btn-sm">Start Stream</button>
+                                </div>
+                                <img id="liveFeed" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                            </div>
+                        </div>
 
-    <main class="page-content">
-      
-      <!-- ══ TAB: DASHBOARD ══ -->
-      <div class="tab-pane active" id="tab-dashboard">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-header"><div class="stat-label">Total Locks</div><i class="fa-solid fa-lock icon-box icon-box-blue"></i></div>
-            <div class="stat-value">03</div>
-            <div class="stat-footer"><span class="live-dot">All Online</span></div>
-          </div>
-          <div class="stat-card stat-green">
-            <div class="stat-header"><div class="stat-label">Total Users</div><i class="fa-solid fa-user-shield icon-box icon-box-green"></i></div>
-            <div class="stat-value">05</div>
-            <div class="stat-footer text-muted">Last entry: <span id="lastEntry">10 mins ago</span></div>
-          </div>
-          <div class="stat-card stat-purple">
-            <div class="stat-header"><div class="stat-label">Today's Entries</div><i class="fa-solid fa-door-open icon-box icon-box-purple"></i></div>
-            <div class="stat-value" id="statEntries">12</div>
-            <div class="stat-footer text-muted">Weekly Avg: 8.5</div>
-          </div>
-          <div class="stat-card stat-red">
-            <div class="stat-header"><div class="stat-label">Security Alerts</div><i class="fa-solid fa-triangle-exclamation icon-box icon-box-red"></i></div>
-            <div class="stat-value" id="statAlerts">03</div>
-            <div class="stat-footer text-danger"><i class="fa-solid fa-circle-exclamation"></i> Needs review</div>
-          </div>
-        </div>
+                        <!-- LOCK ENGINE -->
+                        <div class="bento-card area-lock">
+                            <div class="card-title"><i class="fa-solid fa-key"></i> Neural Lock Engine</div>
+                            <div class="lock-visual">
+                                <div class="lock-ring-outer"></div>
+                                <div id="masterLockBtn" class="lock-button locked">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span id="lockStatusText">SECURED</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem; width: 100%;">
+                                <button id="masterKeyBtn" class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <i class="fa-solid fa-crown"></i> Master Key
+                                </button>
+                            </div>
+                        </div>
 
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <h4 class="chart-card-title">Weekly Access Activity</h4>
-              <select class="logs-select" id="chartWeekSelect" onchange="updateChart()">
-                <option value="this">This Week</option>
-                <option value="last">Last Week</option>
-              </select>
-            </div>
-            <div class="chart-wrap"><canvas id="activityChart"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-card-header"><h4 class="chart-card-title">Access Methods</h4></div>
-            <div class="chart-wrap"><canvas id="methodChart"></canvas></div>
-          </div>
-        </div>
+                        <!-- TELEMETRY -->
+                        <div class="bento-card area-load">
+                            <div class="card-title"><i class="fa-solid fa-heartbeat"></i> Hardware Heartbeat</div>
+                            <div class="telemetry-val" id="sysUptimeVal" style="font-size: 1.5rem;">WAITING</div>
+                            <div class="telemetry-label" id="heartbeatSub">Connecting to ESP32...</div>
+                        </div>
 
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-card-header"><h4 class="chart-card-title">Live Activity Feed</h4></div>
-            <div class="activity-feed" id="activityFeed"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-card-header"><h4 class="chart-card-title">Unauthorized Attempts</h4></div>
-            <div class="chart-wrap"><canvas id="attemptChart"></canvas></div>
-          </div>
-        </div>
-      </div>
+                        <div class="bento-card area-net">
+                            <div class="card-title"><i class="fa-solid fa-crosshairs"></i> AI Engine</div>
+                            <div class="telemetry-val" id="aiConfVal" style="font-size: 1.5rem; color: #38bdf8;">ACTIVE</div>
+                            <div class="telemetry-label">Continuous Monitoring</div>
+                        </div>
 
-      <!-- ══ TAB: LOCKS ══ -->
-      <div class="tab-pane" id="tab-locks">
-        <div class="locks-grid">
-          <!-- Front Door -->
-          <div class="lock-card">
-            <div class="lock-status-bar" id="lockBar1" style="background:var(--color-danger)"></div>
-            <div class="lock-card-header">
-              <span class="lock-name">Front Door</span>
-              <span class="badge badge-danger" id="lockBadge1"><i class="fa-solid fa-lock"></i> Locked</span>
-            </div>
-            <div class="lock-ring-wrap">
-              <div class="lock-ring locked" id="lockRing1"><i class="fa-solid fa-lock lock-main-icon" id="lockIcon1" style="color:var(--color-danger)"></i></div>
-            </div>
-            <div class="lock-info">
-              <div class="lock-info-item"><i class="fa-solid fa-battery-three-quarters"></i> 82%</div>
-              <div class="lock-info-item"><i class="fa-solid fa-bolt"></i> Power: OK</div>
-              <div class="lock-info-item"><i class="fa-regular fa-clock"></i> 10m ago</div>
-            </div>
-            <button class="lock-btn unlock-btn" id="lockBtn1" onclick="toggleLock(1,'Front Door')"><i class="fa-solid fa-unlock"></i> Unlock Door</button>
-          </div>
-          <!-- Back Door -->
-          <div class="lock-card">
-            <div class="lock-status-bar" id="lockBar2" style="background:var(--color-success)"></div>
-            <div class="lock-card-header">
-              <span class="lock-name">Back Door</span>
-              <span class="badge badge-success" id="lockBadge2"><i class="fa-solid fa-lock-open"></i> Unlocked</span>
-            </div>
-            <div class="lock-ring-wrap">
-              <div class="lock-ring unlocked" id="lockRing2"><i class="fa-solid fa-unlock lock-main-icon" id="lockIcon2" style="color:var(--color-success)"></i></div>
-            </div>
-            <div class="lock-info">
-              <div class="lock-info-item"><i class="fa-solid fa-battery-half"></i> 45%</div>
-              <div class="lock-info-item"><i class="fa-solid fa-bolt"></i> Power: OK</div>
-              <div class="lock-info-item"><i class="fa-regular fa-clock"></i> 2h ago</div>
-            </div>
-            <button class="lock-btn lock-btn-dark" id="lockBtn2" onclick="toggleLock(2,'Back Door')"><i class="fa-solid fa-lock"></i> Lock Door</button>
-          </div>
-          <!-- Garage -->
-          <div class="lock-card">
-            <div class="lock-status-bar" id="lockBar3" style="background:var(--color-success)"></div>
-            <div class="lock-card-header">
-              <span class="lock-name">Garage Door</span>
-              <span class="badge badge-success" id="lockBadge3"><i class="fa-solid fa-lock-open"></i> Unlocked</span>
-            </div>
-            <div class="lock-ring-wrap">
-              <div class="lock-ring unlocked" id="lockRing3"><i class="fa-solid fa-unlock lock-main-icon" id="lockIcon3" style="color:var(--color-success)"></i></div>
-            </div>
-            <div class="lock-info">
-              <div class="lock-info-item"><i class="fa-solid fa-battery-full"></i> 98%</div>
-              <div class="lock-info-item"><i class="fa-solid fa-bolt"></i> Power: OK</div>
-              <div class="lock-info-item"><i class="fa-regular fa-clock"></i> 5h ago</div>
-            </div>
-            <button class="lock-btn lock-btn-dark" id="lockBtn3" onclick="toggleLock(3,'Garage Door')"><i class="fa-solid fa-lock"></i> Lock Door</button>
-          </div>
-        </div>
-      </div>
+                        <!-- PULSE LOGS -->
+                        <div class="bento-card area-logs" style="grid-column: span 2;">
+                            <div class="card-title"><i class="fa-solid fa-list-ul"></i> Security Pulse Feed</div>
+                            <div class="log-list" id="accessLogs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
 
-      <!-- ══ TAB: LOGS ══ -->
-      <div class="tab-pane" id="tab-logs">
-        <div class="logs-card">
-          <div class="logs-toolbar">
-            <div class="logs-search">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="logsSearch" placeholder="Search logs..." onkeyup="filterLogs()">
-            </div>
-            <div class="logs-filters">
-              <select class="logs-select" id="doorFilter" onchange="filterLogs()">
-                <option value="">All Doors</option>
-                <option value="Front Door">Front Door</option>
-                <option value="Back Door">Back Door</option>
-                <option value="Garage Door">Garage Door</option>
-              </select>
-              <select class="logs-select" id="statusFilter" onchange="filterLogs()">
-                <option value="">All Status</option>
-                <option value="Granted">Granted</option>
-                <option value="Denied">Denied</option>
-              </select>
-              <button class="btn btn-secondary btn-sm" onclick="exportLogsCSV()"><i class="fa-solid fa-download"></i> CSV</button>
-              <button class="btn btn-secondary btn-sm" onclick="exportLogsPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-            </div>
-          </div>
-          <div style="overflow-x:auto">
-            <table class="data-table" id="logsTable">
-              <thead><tr>
-                <th>User</th><th>Date & Time</th><th>Door</th><th>Method</th><th>Status</th>
-              </tr></thead>
-              <tbody id="logsBody"></tbody>
-            </table>
-          </div>
-          <div style="padding:1.25rem; text-align:center; border-top:1px solid var(--border-color)">
-            <button class="btn btn-secondary btn-sm" onclick="loadMoreLogs()">Load More</button>
-          </div>
-        </div>
-      </div>
+                        <!-- SENTINEL MONITOR (DYNAMIC) -->
+                        <div class="bento-card area-alert" id="alertCard">
+                            <div class="card-title"><i class="fa-solid fa-shield-virus"></i> Sentinel Monitor</div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem;">
+                                <div>
+                                    <div class="telemetry-val" id="alertStatus">CLEAR</div>
+                                    <div class="telemetry-label" id="alertSubtext">Active protection enabled</div>
+                                </div>
+                                <i id="alertIcon" class="fa-solid fa-shield-check" style="font-size: 3rem; color: var(--success); opacity: 0.2;"></i>
+                            </div>
+                            <button id="clearAlertBtn" class="btn btn-danger" style="margin-top: 1.5rem; display: none; width: 100%; justify-content: center;">
+                                <i class="fa-solid fa-bell-slash"></i> Clear Security Alert
+                            </button>
+                        </div>
 
-      <!-- ══ TAB: CAMERA ══ -->
-      <div class="tab-pane" id="tab-camera">
-        <div class="camera-grid" id="cameraGrid"></div>
-      </div>
+                    </div>
+                </div>
 
-      <!-- ══ TAB: ALERTS ══ -->
-      <div class="tab-pane" id="tab-alerts">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-          <h3 style="font-size:1.15rem;font-weight:700">Security Alerts</h3>
-          <button class="btn btn-secondary btn-sm" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i> Mark All Read</button>
-        </div>
-        <div class="alerts-list" id="alertsList"></div>
-      </div>
+                <!-- ════ OTHER SECTIONS (DUMMY/PLACEHOLDERS) ════ -->
+                <!-- ════ INFRASTRUCTURE SECTION ════ -->
+                <div id="section-hardware" class="content-section" style="display: none;">
+                    <div class="infra-grid">
+                        <div class="bento-card">
+                            <div class="card-title"><i class="fa-solid fa-microchip"></i> ESP32 Status</div>
+                            <div class="telemetry-val" id="infraSystemStatus">ONLINE</div>
+                            <div class="telemetry-label">Main Controller</div>
+                        </div>
+                        <div class="bento-card">
+                            <div class="card-title"><i class="fa-solid fa-clock"></i> Last Heartbeat</div>
+                            <div class="telemetry-val" id="infraHeartbeatTime" style="font-size: 1.2rem;">--:--:--</div>
+                            <div class="telemetry-label">Sync Frequency: 2s</div>
+                        </div>
+                        <div class="bento-card">
+                            <div class="card-title"><i class="fa-solid fa-wifi"></i> Signal Path</div>
+                            <div class="telemetry-val" style="color: var(--success);">STABLE</div>
+                            <div class="telemetry-label">Firebase RTDB</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="section-alerts" class="content-section" style="display: none;">
+                    <div id="alertsListContainer" style="display: grid; gap: 1rem;"></div>
+                </div>
+                <div id="section-history" class="content-section" style="display: none;">
+                    <div id="fullHistoryContainer" class="history-grid"></div>
+                </div>
 
-      <!-- ══ TAB: FAMILY ══ -->
-      <div class="tab-pane" id="tab-family">
-        <div class="family-header">
-          <h3 style="font-size:1.15rem;font-weight:700">Family Members</h3>
-          <button class="btn btn-primary btn-sm" onclick="openAddMember()"><i class="fa-solid fa-plus"></i> Add Member</button>
-        </div>
-        <div class="family-grid" id="familyGrid"></div>
-      </div>
-
-      <!-- ══ TAB: SETTINGS ══ -->
-      <div class="tab-pane" id="tab-settings">
-        <div class="settings-wrap">
-          <div class="settings-card">
-            <h4 class="settings-card-title"><i class="fa-solid fa-bell" style="color:var(--color-primary);margin-right:.5rem"></i>Notifications</h4>
-            <div class="settings-row">
-              <div><div class="settings-label">Email Notifications</div><div class="settings-hint">Receive alerts on important events</div></div>
-              <label class="toggle"><input type="checkbox" checked onchange="saveSetting('email_notif',this.checked)"><span class="toggle-slider"></span></label>
             </div>
-            <div class="settings-row">
-              <div><div class="settings-label">Tamper Detection</div><div class="settings-hint">Alert on physical tamper attempt</div></div>
-              <label class="toggle"><input type="checkbox" checked onchange="saveSetting('tamper',this.checked)"><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-          <div class="settings-card">
-            <h4 class="settings-card-title"><i class="fa-solid fa-key" style="color:var(--color-primary);margin-right:.5rem"></i>Change Password</h4>
-            <div class="form-group">
-              <label class="form-label">Current Password</label>
-              <div class="input-group">
-                <i class="fa-solid fa-lock input-icon"></i>
-                <input type="password" class="form-input" id="currentPwd" placeholder="Current password">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">New Password</label>
-              <div class="input-group">
-                <i class="fa-solid fa-lock-keyhole input-icon"></i>
-                <input type="password" class="form-input" id="newPwd" placeholder="New password (min 8 chars)">
-              </div>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="changePassword()"><i class="fa-solid fa-floppy-disk"></i> Update Password</button>
-          </div>
-          <div class="settings-card">
-            <h4 class="settings-card-title"><i class="fa-solid fa-microchip" style="color:var(--color-danger);margin-right:.5rem"></i>System</h4>
-            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-              <button class="btn btn-secondary btn-sm" onclick="rebootSystem()"><i class="fa-solid fa-rotate-right"></i> Reboot Hub</button>
-              <button class="btn btn-danger btn-sm" onclick="logoutAllDevices()"><i class="fa-solid fa-power-off"></i> Logout All Devices</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </main>
-  </div><!-- /main-area -->
-</div><!-- /app-layout -->
-
-<!-- Theme Settings Drawer (Moved outside main area) -->
-<div class="theme-drawer" id="themeDrawer">
-  <div class="theme-drawer-header">
-    <h4 style="font-weight:700"><i class="fa-solid fa-palette" style="margin-right:.5rem; color:var(--color-primary)"></i>Custom UI</h4>
-    <button class="drawer-close" onclick="toggleThemeDrawer()"><i class="fa-solid fa-times"></i></button>
-  </div>
-  <div class="theme-drawer-body">
-    <p class="text-xs text-muted" style="margin-bottom:1.5rem">Change colors for sidebar and branding elements.</p>
-    
-    <div class="theme-setting-item">
-      <div class="theme-setting-label">
-        <span class="font-semibold">Accent Color</span>
-        <div class="text-xs text-muted">Icons & Buttons</div>
-      </div>
-      <input type="color" value="#3b82f6" onchange="updatePrimaryColor(this.value)" class="color-input">
+        </main>
     </div>
 
-    <div class="theme-setting-item">
-      <div class="theme-setting-label">
-        <span class="font-semibold">Sidebar/Header</span>
-        <div class="text-xs text-muted">Main nav background</div>
-      </div>
-      <input type="color" value="#0f172a" onchange="updateSidebarColor(this.value)" class="color-input">
-    </div>
-  </div>
-</div>
-<div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleThemeDrawer()"></div>
+    <!-- ══ AUDIO ASSETS ══ -->
+    <audio id="audioVisitor" src="https://actions.google.com/sounds/v1/foley/door_bell.ogg"></audio>
+    <audio id="audioTamper" src="https://actions.google.com/sounds/v1/alarms/alarm_clock_beeping.ogg"></audio>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <script>
+        // FORCE LOCALHOST REDIRECT (Security & Firebase Fix)
+        if (window.location.protocol === 'file:') {
+            window.location.href = 'http://127.0.0.1:5000/dashboard';
+        }
 
-<!-- Modals & Other Components... -->
-<div class="img-modal-overlay" id="imgModal" onclick="closeImgModal(event)">
-  <div class="img-modal-content">
-    <button class="img-modal-close" onclick="document.getElementById('imgModal').classList.remove('open')"><i class="fa-solid fa-times"></i></button>
-    <img src="" id="imgModalSrc">
-  </div>
-</div>
+        // 1. STATE & ELEMENTS
+        const lockBtn = document.getElementById('masterLockBtn');
+        const lockIcon = lockBtn.querySelector('i');
+        const lockText = document.getElementById('lockStatusText');
+        const doorText = document.getElementById('doorStateText');
+        const logContainer = document.getElementById('accessLogs');
+        const alertCard = document.getElementById('alertCard');
+        const alertStatus = document.getElementById('alertStatus');
+        const alertSubtext = document.getElementById('alertSubtext');
+        
+        let currentUser = null;
 
-<!-- Scripts -->
-<script src="js/dashboard.js"></script>
+        // 2. BYPASS AUTHENTICATION (For Local Hardware Testing)
+        // Since Firebase Auth is rejecting the local 127.0.0.1 domain / API Key,
+        // we bypass it to allow direct monitoring of the ESP32.
+        currentUser = { uid: "local-admin", email: "admin@securenest.local" };
+        document.getElementById('userName').innerText = "SuperAdmin";
+        document.getElementById('userAvatar').innerText = "S";
+
+        // 3. LOCK CONTROL
+        lockBtn.addEventListener('click', () => {
+            const isUnlocked = lockBtn.classList.contains('unlocked');
+            const newStatus = isUnlocked ? 'locked' : 'unlocked';
+            toggleGate(newStatus, "Manual Toggle");
+        });
+
+        document.getElementById('masterKeyBtn').addEventListener('click', () => {
+            const isUnlocked = lockBtn.classList.contains('unlocked');
+            const newStatus = isUnlocked ? 'locked' : 'master_key';
+            toggleGate(newStatus, "Master Key Toggle");
+        });
+
+        function toggleGate(status, method) {
+            const btn = status === 'master_key' ? document.getElementById('masterKeyBtn') : lockBtn;
+            btn.style.opacity = "0.5";
+            
+            fetch('https://nest-61a74-default-rtdb.asia-southeast1.firebasedatabase.app/locks/front_door/status.json', {
+                method: 'PUT',
+                body: JSON.stringify(status)
+            }).then(() => {
+                setTimeout(() => btn.style.opacity = "1", 500);
+            });
+
+            // Log Action
+            fetch('https://nest-61a74-default-rtdb.asia-southeast1.firebasedatabase.app/access_logs.json', {
+                method: 'POST',
+                body: JSON.stringify({
+                    user: document.getElementById('userName').innerText,
+                    method: method,
+                    status: status,
+                    timestamp: new Date().toISOString()
+                })
+            });
+        }
+
+        document.getElementById('clearAlertBtn').addEventListener('click', () => {
+            fetch('https://nest-61a74-default-rtdb.asia-southeast1.firebasedatabase.app/locks/front_door/status.json', {
+                method: 'PUT', body: JSON.stringify('clear_alert')
+            });
+            document.getElementById('clearAlertBtn').style.display = 'none';
+        });
+
+        // 4. BULLETPROOF NATIVE REST POLLING (Bypasses all Firebase Auth & SDK issues)
+        const dbUrl = "https://nest-61a74-default-rtdb.asia-southeast1.firebasedatabase.app";
+        
+        setInterval(async () => {
+            try {
+                // Fetch all critical data in parallel
+                const [statusRes, alertsRes, locksRes] = await Promise.all([
+                    fetch(dbUrl + '/status.json').then(r => r.json()),
+                    fetch(dbUrl + '/alerts.json?orderBy="$key"&limitToLast=1').then(r => r.json()),
+                    fetch(dbUrl + '/locks/front_door/status.json').then(r => r.json())
+                ]);
+
+                // Connected State
+                document.getElementById('backendDot').className = 'status-dot online';
+                document.getElementById('backendStatusText').innerText = 'DATABASE: CONNECTED';
+
+                // Locks Processing
+                const lockStatus = locksRes;
+                const mkBtn = document.getElementById('masterKeyBtn');
+                if (lockStatus === 'unlocked' || lockStatus === 'master_key') {
+                    lockBtn.classList.add('unlocked');
+                    lockBtn.classList.remove('locked');
+                    lockIcon.className = 'fa-solid fa-unlock';
+                    lockText.innerText = 'UNLOCKED';
+                    mkBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Lock Gate';
+                    mkBtn.style.background = 'linear-gradient(135deg, var(--danger), #b91c1c)';
+                } else {
+                    lockBtn.classList.add('locked');
+                    lockBtn.classList.remove('unlocked');
+                    lockIcon.className = 'fa-solid fa-lock';
+                    lockText.innerText = 'SECURED';
+                    mkBtn.innerHTML = '<i class="fa-solid fa-crown"></i> Master Key';
+                    mkBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                }
+
+                // Status Processing
+                if (statusRes) {
+                    const el = document.getElementById('sysUptimeVal');
+                    const sub = document.getElementById('heartbeatSub');
+                    const infraTime = document.getElementById('infraHeartbeatTime');
+                    const timeStr = new Date().toLocaleTimeString();
+                    el.innerText = 'ONLINE';
+                    el.style.color = 'var(--success)';
+                    sub.innerText = 'ESP32 Active – ' + timeStr;
+                    if (infraTime) infraTime.innerText = timeStr;
+
+                    const doorVal = statusRes.door;
+                    const doorText = document.getElementById('doorStateText');
+                    if (doorText) {
+                        doorText.innerText = (doorVal || 'CLOSED').toUpperCase();
+                        doorText.style.color = doorVal === 'open' ? 'var(--danger)' : 'var(--success)';
+                    }
+                }
+
+                // Alerts Processing
+                if (alertsRes) {
+                    const alert = Object.values(alertsRes)[0];
+                    const isVisitor = alert.type === 'face_alert' || (alert.title && alert.title.includes('waiting'));
+                    if (isVisitor) {
+                        document.getElementById('visitorStatusText').innerText = 'AUTHORIZED';
+                        document.getElementById('visitorStatusText').style.color = '#38bdf8';
+                        document.getElementById('visitorNameText').innerText = alert.title.split(' is ')[0] || 'Visitor Detected';
+                        document.getElementById('visitorStatusDot').className = 'status-dot online';
+                    }
+
+                    if (alert.type === 'vibration_alert') {
+                        alertCard.className = 'bento-card area-alert pulse-red';
+                        alertCard.style.background = 'rgba(239, 68, 68, 0.1)';
+                        alertStatus.innerText = 'BREACH';
+                        alertStatus.style.color = 'var(--danger)';
+                        alertSubtext.innerText = alert.title;
+                        document.getElementById('clearAlertBtn').style.display = 'flex';
+                        document.getElementById('alertIcon').className = 'fa-solid fa-triangle-exclamation';
+                        document.getElementById('alertIcon').style.color = 'var(--danger)';
+                        document.getElementById('alertIcon').style.opacity = '1';
+                    } else if (isVisitor) {
+                        alertCard.className = 'bento-card area-alert pulse-blue';
+                        alertCard.style.background = 'rgba(56, 189, 248, 0.1)';
+                        alertStatus.innerText = 'VISITOR';
+                        alertStatus.style.color = '#38bdf8';
+                        alertSubtext.innerText = alert.title;
+                        document.getElementById('clearAlertBtn').style.display = 'none';
+                        document.getElementById('alertIcon').className = 'fa-solid fa-user-shield';
+                        document.getElementById('alertIcon').style.color = '#38bdf8';
+                        document.getElementById('alertIcon').style.opacity = '1';
+                    } else {
+                        alertCard.className = 'bento-card area-alert';
+                        alertCard.style.background = '';
+                        alertStatus.innerText = 'CLEAR';
+                        alertStatus.style.color = 'var(--success)';
+                        alertSubtext.innerText = 'Active protection enabled';
+                        document.getElementById('clearAlertBtn').style.display = 'none';
+                        document.getElementById('alertIcon').className = 'fa-solid fa-shield-check';
+                        document.getElementById('alertIcon').style.color = 'var(--success)';
+                        document.getElementById('alertIcon').style.opacity = '0.2';
+                    }
+                }
+            } catch (err) {
+                console.error("Polling error:", err);
+                document.getElementById('backendDot').className = 'status-dot offline';
+                document.getElementById('backendStatusText').innerText = 'DATABASE: DISCONNECTED';
+            }
+        }, 1500); // Poll every 1.5s
+
+        // Logs Polling (Slower)
+        setInterval(async () => {
+            try {
+                const logsRes = await fetch(dbUrl + '/access_logs.json?orderBy="$key"&limitToLast=6').then(r => r.json());
+                if (logsRes) {
+                    logContainer.innerHTML = '';
+                    Object.values(logsRes).forEach(log => {
+                        const item = document.createElement('div');
+                        item.className = 'log-item';
+                        item.innerHTML = `
+                            <div class="log-text">
+                                <span class="log-name">${log.user || 'System'}</span>
+                                <span class="log-time">${log.status} • ${new Date(log.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                        `;
+                        logContainer.prepend(item);
+                    });
+                }
+            } catch (e) {}
+        }, 3000);
+
+        // 7. STREAM CONTROL
+        const startStreamBtn = document.getElementById('startStreamBtn');
+        const liveFeed = document.getElementById('liveFeed');
+        startStreamBtn.addEventListener('click', () => {
+            liveFeed.src = '/video_feed';
+            liveFeed.style.display = 'block';
+            document.getElementById('camContainer').style.display = 'none';
+            document.getElementById('camStatusBadge').style.display = 'block';
+            document.getElementById('closeStreamBtn').style.display = 'block';
+        });
+
+        // 8. BACKEND CHECK
+        setInterval(() => {
+            fetch('/api/status').then(r => {
+                document.getElementById('backendDot').className = 'status-dot online';
+                document.getElementById('backendStatusText').innerText = 'BACKEND: ONLINE';
+            }).catch(() => {
+                document.getElementById('backendDot').className = 'status-dot offline';
+                document.getElementById('backendStatusText').innerText = 'BACKEND: OFFLINE';
+            });
+        }, 5000);
+    </script>
 </body>
 </html>

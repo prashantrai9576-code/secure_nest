@@ -1,6 +1,0 @@
-flask
-flask-cors
-firebase-admin
-python-dotenv
-requests
-fpdf2

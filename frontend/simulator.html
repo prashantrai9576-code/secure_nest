@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Nest – Hardware Simulator</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-app: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --color-primary: #3b82f6;
+            --color-danger: #ef4444;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --text-muted: #94a3b8;
+        }
+        body {
+            background: var(--bg-app);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .sim-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .cam-preview {
+            width: 100%;
+            height: 240px;
+            background: #000;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid var(--color-primary);
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .sim-btn {
+            width: 100%;
+            padding: 0.85rem;
+            margin-top: 0.75rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sim-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-recognize { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .btn-tamper { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-fingerprint { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        
+        .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: white; }
+        .nav-logo-icon { width: 40px; height: 40px; background: var(--color-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .nav-logo-text { font-size: 1.25rem; font-weight: 800; }
+        .nav-logo-text span { color: var(--color-primary); }
+    </style>
+</head>
+<body>
+    <nav style="background:var(--bg-card); padding: 1rem 2rem; border-bottom: 1px solid var(--border-color);">
+        <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
+            <a href="index.html" class="nav-logo">
+                <div class="nav-logo-icon"><i class="fa-solid fa-fingerprint"></i></div>
+                <span class="nav-logo-text">Secure<span>Nest</span> SIM</span>
+            </a>
+            <a href="dashboard.html" style="color:white; text-decoration:none; font-weight:600; padding:0.5rem 1rem; border:1px solid var(--border-color); border-radius:8px;">Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="simulator-grid">
+        <!-- Camera Simulator -->
+        <div class="sim-card">
+            <h3><i class="fa-solid fa-camera"></i> AI Face Scanner</h3>
+            <div class="cam-preview" id="camPreview">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display:none"></canvas>
+            </div>
+            <button class="sim-btn btn-recognize" onclick="simulateFaceRecognize()">
+                <i class="fa-solid fa-expand"></i> Capture & Verify
+            </button>
+            <p class="text-xs text-muted" style="margin-top:0.75rem; font-size:0.8rem">Uses your webcam to simulate the ESP32-CAM module.</p>
+        </div>
+
+        <!-- Fingerprint Simulator -->
+        <div class="sim-card">
+            <h3><i class="fa-solid fa-fingerprint"></i> Fingerprint Scanner</h3>
+            <div style="font-size:4rem; margin:1.5rem 0; color:var(--color-success); filter: drop-shadow(0 0 10px rgba(16,185,129,0.3))">
+                <i class="fa-solid fa-fingerprint"></i>
+            </div>
+            <input type="text" id="fingerUser" placeholder="User Name (e.g. John Doe)" style="width:100%; padding:0.75rem; background:var(--bg-app); border:1px solid var(--border-color); border-radius:8px; color:white; margin-bottom:0.75rem; box-sizing:border-box;">
+            <button class="sim-btn btn-fingerprint" onclick="simulateFingerprint()">
+                <i class="fa-solid fa-id-card"></i> Scan Fingerprint
+            </button>
+        </div>
+
+        <!-- Sensor Simulator -->
+        <div class="sim-card">
+            <h3><i class="fa-solid fa-shield-virus"></i> Security Sensors</h3>
+            <div style="display:flex; gap:1rem; flex-direction:column; margin-top:1rem">
+                <button class="sim-btn btn-tamper" onclick="simulateTamper()">
+                    <i class="fa-solid fa-hand-fist"></i> Physical Tamper
+                </button>
+                <button class="sim-btn btn-tamper" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="simulateForcedEntry()">
+                    <i class="fa-solid fa-door-open"></i> Forced Door Open
+                </button>
+            </div>
+            <p class="text-xs text-muted" style="margin-top:1rem; font-size:0.8rem">Simulates vibration and magnetic sensor triggers.</p>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const BACKEND = 'http://localhost:5000';
+
+        // Start Webcam
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => {
+                    console.error("Webcam error:", err);
+                    document.getElementById('camPreview').innerHTML = '<p style="color:var(--color-danger)">Webcam Access Denied</p>';
+                });
+        }
+
+        async function simulateFaceRecognize() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob, 'capture.jpg');
+                formData.append('door_id', 'front_door');
+
+                try {
+                    const res = await fetch(`${BACKEND}/api/face/recognize`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.status === 'unlocked') {
+                        alert(`Access Granted! Welcome ${data.user} (Confidence: ${Math.round(data.confidence * 100)}%)`);
+                    } else {
+                        alert(`Access Denied: ${data.reason}`);
+                    }
+                } catch (e) {
+                    alert("Error connecting to Backend: " + e.message);
+                }
+            }, 'image/jpeg');
+        }
+
+        async function simulateFingerprint() {
+            const user = document.getElementById('fingerUser').value || "Guest";
+            try {
+                await fetch(`${BACKEND}/api/logs/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user: user,
+                        door: "Front Door",
+                        method: "Fingerprint",
+                        status: "Granted"
+                    })
+                });
+                alert("Fingerprint Scanned! Front Door Unlocked.");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function simulateTamper() {
+            try {
+                await fetch(`${BACKEND}/api/alerts/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: "tamper_alert",
+                        title: "Physical Tamper Detected",
+                        level: "high",
+                        desc: "High-intensity vibration detected at Front Door lock casing."
+                    })
+                });
+                alert("Tamper Alert Sent to Dashboard!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function simulateForcedEntry() {
+            try {
+                await fetch(`${BACKEND}/api/alerts/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: "forced_entry",
+                        title: "Unauthorized Door Opening",
+                        level: "high",
+                        desc: "Magnetic sensor triggered without valid biometric authentication."
+                    })
+                });
+                alert("Forced Entry Alert Sent to Dashboard!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+flask
+flask-cors
+firebase-admin
+python-dotenv
+requests
+opencv-python
+numpy
+ultralytics
+face_recognition
+dlib
